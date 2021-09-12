@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 
 const FREQUENCY_SELECTION = [
@@ -28,83 +28,103 @@ const DEFAULT_TERM = 5;
 
 const DEFAULT_PREIOD_YEAR = 25;
 
+function useFloatInput(defaultValue) {
+  const [value, setValue] = useState(defaultValue);
+  const [displayValue, setDisplayValue] = useState(defaultValue);
+
+  const handleValueChange = useCallback((event) => {
+    const re = /^([1-9][0-9]*)\.?[0-9]*$/;
+    const reZero = /^0\..[0-9]*$/;
+    const rawValue = event.target.value;
+    if (
+      rawValue === "" ||
+      rawValue === "0" ||
+      rawValue === "0." ||
+      re.test(rawValue) ||
+      reZero.test(rawValue)
+    ) {
+      let value = parseFloat(rawValue);
+      if (isNaN(value)) {
+        value = 0;
+      }
+      setValue(value);
+      setDisplayValue(rawValue);
+    }
+  }, []);
+  return [value, displayValue, handleValueChange];
+}
+
+function useUnsignedIntegerInput(defaultValue) {
+  const [value, setValue] = useState(defaultValue);
+  const [displayValue, setDisplayValue] = useState(defaultValue);
+
+  const handleValueChange = useCallback((event) => {
+    const re = /^(0|[1-9][0-9]*)$/;
+    if (event.target.value === "" || re.test(event.target.value)) {
+      let value = parseInt(event.target.value, 10);
+      if (isNaN(value)) {
+        value = 0;
+      }
+      setValue(value);
+      setDisplayValue(event.target.value);
+    }
+  }, []);
+
+  return [value, displayValue, handleValueChange];
+}
+
+function useSelectValue(defaultValue) {
+  const [value, setValue] = useState(defaultValue);
+  const handleSelectChange = useCallback(
+    (event) => {
+      let value = event.target.value;
+
+      let numberValue = parseInt(value, 10);
+      if (isNaN(numberValue)) {
+        setValue(defaultValue);
+      } else {
+        setValue(numberValue);
+      }
+    },
+    [defaultValue]
+  );
+  return [value, handleSelectChange];
+}
+
+function calculateMortgageDetail(
+  amount,
+  rate,
+  periodYear,
+  periodMonth,
+  frequency,
+  term,
+
+  prepayment,
+  preFrequency,
+  startWith
+) {}
 
 function App() {
-  const [amount, setAmount] = useState(DEFAULT_MORTGAGE_AMOUNT);
-  const [rate, setRate] = useState(DEFAULT_RATE);
+  const [amountValue, amount, handleChangeAmount] = useFloatInput(
+    DEFAULT_MORTGAGE_AMOUNT
+  );
+  const [rateValue, rate, handleChangeRate] = useFloatInput(DEFAULT_RATE);
 
-  const [periodYear, setPeriodYear] = useState(DEFAULT_PREIOD_YEAR);
-  const [periodMonth, setPeriodMonth] = useState(0);
+  const [periodYear, handleChangePeriodYear] =
+    useSelectValue(DEFAULT_PREIOD_YEAR);
+  const [periodMonth, handleChangePeriodMonth] = useSelectValue(0);
 
-  const [frequency, setFrequency] = useState(DEFAULT_FREQUENCY);
-  const [preFrequency, setPreFrequency] = useState(
+  const [frequency, handleChangeFrequency] = useSelectValue(DEFAULT_FREQUENCY);
+  const [preFrequency, handleChangePreFrequency] = useSelectValue(
     DEFAULT_PREPAYMENT_FREQUENCY
   );
 
-  const [term, setTerm] = useState(DEFAULT_TERM);
-  const [prepayment, setPrepayment] = useState(DEFAULT_PREPAYMENT);
+  const [term, handleChangeTerm] = useSelectValue(DEFAULT_TERM);
+  const [prepaymentValue, prepayment, handleChangePrepayment] =
+    useFloatInput(DEFAULT_PREPAYMENT);
 
-  const [startWith, setStartWith] = useState(1);
-
-  useEffect(() => {
-    console.log(
-      amount,
-      rate,
-      periodYear,
-      periodMonth,
-      frequency,
-      preFrequency,
-      term,
-      prepayment,
-      startWith
-    );
-  }, [
-    amount,
-    rate,
-    periodYear,
-    periodMonth,
-    frequency,
-    preFrequency,
-    term,
-    prepayment,
-    startWith,
-  ]);
-
-  function handleChangeAmount(event) {
-    setAmount(event.target.value);
-  }
-
-  function handleChangeRate(event) {
-    setRate(event.target.value);
-  }
-
-  function handleChangePeriodYear(event) {
-    setPeriodYear(event.target.value);
-  }
-
-  function handleChangePeriodMonth(event) {
-    setPeriodMonth(event.target.value);
-  }
-
-  function handleChangeFrequency(event) {
-    setFrequency(event.target.value);
-  }
-
-  function handleChangePreFrequency(event) {
-    setPreFrequency(event.target.value);
-  }
-
-  function handleChangeStartWith(event) {
-    setStartWith(event.target.value);
-  }
-
-  function handleChangeTerm(event) {
-    setTerm(event.target.value);
-  }
-
-  function handleChangePrepayment(event) {
-    setPrepayment(event.target.value);
-  }
+  const [startWithValue, startWith, handleChangeStartWith] =
+    useUnsignedIntegerInput(1);
 
   function displayPlural(number, time) {
     let result = "";
@@ -155,9 +175,25 @@ function App() {
     return result;
   }
 
+  function handleFormSubmit(event) {
+    calculateMortgageDetail(
+      amountValue,
+      rateValue,
+      periodYear,
+      periodMonth,
+      frequency,
+      term,
+
+      prepaymentValue,
+      preFrequency,
+      startWithValue
+    );
+    event.preventDefault();
+  }
+
   return (
     <div>
-      <form>
+      <form onSubmit={handleFormSubmit}>
         <label htmlFor="amount">Mortgage Amount</label>
         <div>
           <input
@@ -245,10 +281,13 @@ function App() {
         <div>
           <input
             id="start-with"
+            type="number"
             onChange={handleChangeStartWith}
             value={startWith}
           ></input>
         </div>
+
+        <input type="submit" value="Calculate" />
       </form>
     </div>
   );
