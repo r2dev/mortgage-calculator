@@ -5,7 +5,6 @@ import {
   useUnsignedIntegerInput,
 } from "./helper";
 
-
 const FREQUENCY_SELECTION = [
   { text: "Accelerated Weekly" },
   { text: "Weekly" },
@@ -50,29 +49,25 @@ function calculateMortgageDetail(
   switch (frequency) {
     case 0:
     case 1:
-      {
-        paymentCountYearly = 52;
-        frequencyText = "Weekly";
-      }
+      paymentCountYearly = 52;
+      frequencyText = "Weekly";
+
       break;
     case 2:
     case 3:
-      {
-        paymentCountYearly = 26;
-        frequencyText = "Bi-Weekly";
-      }
+      paymentCountYearly = 26;
+      frequencyText = "Bi-Weekly";
+
       break;
     case 4:
-      {
-        paymentCountYearly = 24;
-        frequencyText = "Bi-Monthly";
-      }
+      paymentCountYearly = 24;
+      frequencyText = "Bi-Monthly";
+
       break;
     case 5:
-      {
-        paymentCountYearly = 12;
-        frequencyText = "Monthly";
-      }
+      paymentCountYearly = 12;
+      frequencyText = "Monthly";
+
       break;
     default: {
       console.debug("unhandle frequency value", frequency);
