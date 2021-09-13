@@ -102,7 +102,62 @@ function calculateMortgageDetail(
   prepayment,
   preFrequency,
   startWith
-) {}
+) {
+  let paymentCountYearly = 1;
+
+  switch (frequency) {
+    case 0:
+    case 1:
+      {
+        paymentCountYearly = 52;
+      }
+      break;
+    case 2:
+    case 3:
+      {
+        paymentCountYearly = 26;
+      }
+      break;
+    case 4:
+      {
+        paymentCountYearly = 24;
+      }
+      break;
+    case 5:
+      {
+        paymentCountYearly = 12;
+      }
+      break;
+    default: {
+      console.debug("unhandle frequency value", frequency);
+    }
+  }
+
+  let totalPeriodInYear = periodYear + periodMonth / 12;
+
+  const numberOfPaymentTerm = term * 12;
+  const numberOfPaymentTotal = Math.floor(
+    totalPeriodInYear * paymentCountYearly
+  );
+
+  const rateForEachPayment = rate / paymentCountYearly / 100;
+
+  const amountTotal = amount - prepayment;
+
+  const powerValue = Math.pow(1 + rateForEachPayment, numberOfPaymentTotal);
+  const payment =
+    (rateForEachPayment * amountTotal * powerValue) / (powerValue - 1);
+
+  const costTerm = payment * numberOfPaymentTerm;
+  const costTotal = payment * numberOfPaymentTotal;
+  const interestTotal = costTotal - amountTotal;
+  let interestTerm = 0;
+
+  for (let i = 0; i < numberOfPaymentTerm; i++) {
+    interestTerm += (amountTotal - payment * i) * rateForEachPayment;
+  }
+  const principalTerm = costTerm - interestTerm;
+}
 
 function App() {
   const [amountValue, amount, handleChangeAmount] = useFloatInput(
