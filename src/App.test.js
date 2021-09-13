@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import App from "./App";
 
 test("renders empty", () => {
@@ -9,27 +9,17 @@ test("renders empty", () => {
   expect(textElement).toBeInTheDocument();
 });
 
-let container;
-
-beforeEach(() => {
-  container = document.createElement("div");
-  document.body.appendChild(container);
-});
-
-afterEach(() => {
-  document.body.removeChild(container);
-  container = null;
-});
-
 test("renders result after click", () => {
-  render(<App />, container);
+  render(<App />);
 
-  const button = container.querySelector('[type="submit"]');
+  const button = screen.getByText("Calculate");
   expect(button).toBeInTheDocument();
-  act(() => {
-    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  });
-  const textElement = screen.getByText(/Monthly/i);
+  const textElement = screen.getByText(/25 year/i);
+  fireEvent(
+    button,
+    new MouseEvent("click", { bubbles: true, cancelable: true })
+  );
+  
 
   expect(textElement).toBeInTheDocument();
 });
